@@ -9,8 +9,12 @@ use librespot::playback::config::{AudioFormat, PlayerConfig};
 use librespot::playback::player::Player;
 use librespot::playback::{audio_backend, mixer};
 use librespot::protocol::authentication::AuthenticationType;
+use tokio::sync::oneshot;
 
-pub async fn connect(token: &str) -> anyhow::Result<()> {
+pub async fn connect(
+    token: &str,
+    mut ready: Option<oneshot::Sender<String>>,
+) -> anyhow::Result<()> {
     let session_config = SessionConfig {
         ..Default::default()
     };
@@ -55,6 +59,10 @@ pub async fn connect(token: &str) -> anyhow::Result<()> {
 
     let (spric, spirc_task) = Spirc::new(connect_config, session.clone(), player, mixer);
     tokio::pin!(spirc_task);
+
+    if let Some(notify) = ready.take() {
+        notify.send(session.device_id().to_string()).ok();
+    }
 
     loop {
         tokio::select! {

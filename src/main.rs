@@ -3,6 +3,7 @@ use clap::{crate_authors, crate_description, crate_version, AppSettings, Clap, I
 mod auth;
 mod cmd;
 mod env;
+pub(crate) mod model;
 mod playback;
 mod rest;
 

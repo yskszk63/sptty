@@ -5,12 +5,37 @@ use std::process::Stdio;
 use tokio::fs;
 use tokio::io;
 use tokio::process::Command;
+use tokio::sync::oneshot;
 
 use super::*;
 
 pub async fn run(env: &Environment) -> anyhow::Result<()> {
     let token = get_token(env, |url| println!("{}", url)).await?;
-    connect(&token).await?;
+    let client = RestClient::new(env).await?;
+
+    let devices = client
+        .request::<_, model::Devices>("/v1/me/player/devices", Method::Get, Empty)
+        .await?;
+    let notify = if devices.devices.is_empty() {
+        let (tx, rx) = oneshot::channel();
+        tokio::spawn(async move {
+            if let Ok(device_id) = rx.await {
+                let req = model::TransferUserPlaybackRequest {
+                    device_ids: vec![device_id],
+                    play: false,
+                };
+                client
+                    .request::<_, Empty>("/v1/me/player", Method::Put, req)
+                    .await
+                    .ok();
+            }
+        });
+        Some(tx)
+    } else {
+        None
+    };
+
+    connect(&token, notify).await?;
     Ok(())
 }
 

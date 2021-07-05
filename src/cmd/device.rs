@@ -1,30 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use super::*;
-
-/// https://developer.spotify.com/documentation/web-api/reference/#object-deviceobject
-#[derive(Debug, Deserialize)]
-struct Device {
-    id: String,
-    is_active: bool,
-    is_private_session: bool,
-    is_restricted: bool,
-    name: String,
-    r#type: String,
-    volume_percent: u8,
-}
-
-/// https://developer.spotify.com/documentation/web-api/reference/#object-devicesobject
-#[derive(Debug, Deserialize)]
-struct Devices {
-    devices: Vec<Device>,
-}
-
-#[derive(Debug, Serialize)]
-struct TransferUserPlaybackRequest {
-    device_ids: Vec<String>,
-    play: bool,
-}
+use model::{Devices, TransferUserPlaybackRequest};
 
 pub async fn list(env: &Environment) -> anyhow::Result<()> {
     let devices = RestClient::new(env)
