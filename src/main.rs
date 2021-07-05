@@ -45,6 +45,9 @@ enum SubCommands {
     /// Stop playing.
     #[clap(display_order = 5)]
     Stop,
+    /// Open spotify client.
+    #[clap(display_order = 6)]
+    Open,
 }
 
 #[derive(Debug, Clap)]
@@ -169,6 +172,7 @@ async fn main() -> anyhow::Result<()> {
         SubCommands::Stop => cmd::track::stop(&env).await,
         SubCommands::NextTrack => cmd::track::next(&env).await,
         SubCommands::PreviousTrack => cmd::track::prev(&env).await,
+        SubCommands::Open => cmd::open::open(),
         //_ => unimplemented!(),
     }
 }
