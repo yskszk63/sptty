@@ -68,6 +68,10 @@ enum DeviceSubCommands {
         /// Connect on play if ture.
         #[clap(long, short)]
         play: bool,
+
+        /// specify by id
+        #[clap(long, short)]
+        id: bool,
     },
 }
 
@@ -144,8 +148,22 @@ async fn main() -> anyhow::Result<()> {
         }) => cmd::device::list(&env).await,
 
         SubCommands::Device(Device {
-            subcommand: Some(DeviceSubCommands::Set { name, play }),
+            subcommand:
+                Some(DeviceSubCommands::Set {
+                    name,
+                    play,
+                    id: false,
+                }),
         }) => cmd::device::set(&env, &name, play).await,
+
+        SubCommands::Device(Device {
+            subcommand:
+                Some(DeviceSubCommands::Set {
+                    name,
+                    play,
+                    id: true,
+                }),
+        }) => cmd::device::set_by_id(&env, &name, play).await,
 
         SubCommands::Play => cmd::track::play(&env).await,
         SubCommands::Stop => cmd::track::stop(&env).await,

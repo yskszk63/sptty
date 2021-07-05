@@ -8,9 +8,9 @@ pub async fn list(env: &Environment) -> anyhow::Result<()> {
         .await?;
     for device in devices.devices {
         if device.is_active {
-            println!("✔ {}", device.name);
+            println!("{} {}✔", device.id, device.name);
         } else {
-            println!("  {}", device.name);
+            println!("{} {}", device.id, device.name);
         }
     }
 
@@ -40,5 +40,17 @@ pub async fn set(env: &Environment, name: &str, play: bool) -> anyhow::Result<()
     } else {
         anyhow::bail!("no match device found.");
     }
+    Ok(())
+}
+
+pub async fn set_by_id(env: &Environment, id: &str, play: bool) -> anyhow::Result<()> {
+    let client = RestClient::new(env).await?;
+    let req = TransferUserPlaybackRequest {
+        device_ids: vec![id.into()],
+        play,
+    };
+    client
+        .request::<_, Empty>("/v1/me/player", Method::Put, req)
+        .await?;
     Ok(())
 }
