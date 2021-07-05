@@ -64,7 +64,7 @@ pub async fn install(force: bool) -> anyhow::Result<()> {
 Description=Lightweight Spotify daemon.
 
 [Service]
-ExecStart=@here connect run
+ExecStart=@here agent run
 
 [Install]
 WantedBy=default.target
