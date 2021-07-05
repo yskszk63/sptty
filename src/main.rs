@@ -87,11 +87,11 @@ enum AgentSubCommands {
     #[clap(display_order = 1)]
     Start,
     /// Stop playback agent background process.
-    Kill,
     #[clap(display_order = 2)]
+    Kill,
     /// Install systemd user unit file.
+    #[clap(display_order = 3)]
     Install {
-        #[clap(display_order = 3)]
         /// force install.
         #[clap(long, short)]
         force: bool,
