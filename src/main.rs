@@ -10,7 +10,7 @@ mod rest;
 pub(crate) use auth::get_token;
 pub(crate) use env::Environment;
 pub(crate) use playback::connect;
-pub(crate) use rest::{Empty, Method, RestClient};
+pub(crate) use rest::{Empty, Method, RestClient, MayBeEmpty};
 
 #[derive(Debug, Clap)]
 #[clap(version = crate_version!(), author = crate_authors!(), about = crate_description!())]
@@ -33,20 +33,23 @@ enum SubCommands {
     /// Manage connected spotify device.
     #[clap(display_order = 1)]
     Device(Device),
-    /// Skip next track current playing playlist.
+    /// List current playing playlist.
     #[clap(display_order = 2)]
+    List,
+    /// Skip next track current playing playlist.
+    #[clap(display_order = 3)]
     NextTrack,
     /// Skip previous track current playing playlist.
-    #[clap(display_order = 3)]
+    #[clap(display_order = 4)]
     PreviousTrack,
     /// Play track current playing playlist.
-    #[clap(display_order = 4)]
+    #[clap(display_order = 5)]
     Play,
     /// Stop playing.
-    #[clap(display_order = 5)]
+    #[clap(display_order = 6)]
     Stop,
     /// Open spotify client.
-    #[clap(display_order = 6)]
+    #[clap(display_order = 7)]
     Open,
 }
 
@@ -168,6 +171,7 @@ async fn main() -> anyhow::Result<()> {
                 }),
         }) => cmd::device::set_by_id(&env, &name, play).await,
 
+        SubCommands::List => cmd::track::list(&env).await,
         SubCommands::Play => cmd::track::play(&env).await,
         SubCommands::Stop => cmd::track::stop(&env).await,
         SubCommands::NextTrack => cmd::track::next(&env).await,

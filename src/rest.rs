@@ -53,6 +53,25 @@ where
     }
 }
 
+#[derive(Debug)]
+pub enum MayBeEmpty<T> {
+    Present(T),
+    Empty,
+}
+
+impl<T> Output for MayBeEmpty<T>
+where
+    T: DeserializeOwned,
+{
+    fn from_json(b: &[u8]) -> anyhow::Result<Self> {
+        if b.is_empty() {
+            return Ok(Self::Empty);
+        }
+        let r = serde_json::from_slice(b)?;
+        Ok(Self::Present(r))
+    }
+}
+
 pub struct RestClient {
     base: Url,
     token: String,
@@ -80,6 +99,7 @@ impl RestClient {
         let url = self.base.join(path)?;
 
         let body = req.to_json()?;
+        log::debug!("request: {}", String::from_utf8_lossy(&body));
         let req = match method {
             Method::Get => self.client.get(url),
             Method::Post => self.client.post(url),
@@ -101,6 +121,7 @@ impl RestClient {
         }
 
         let body = res.bytes().await?;
+        log::debug!("response: {}", String::from_utf8_lossy(&body));
         Ok(O::from_json(&body)?)
     }
 }
