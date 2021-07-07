@@ -1,3 +1,4 @@
+//! A Lightweight Spotify Client for Linux.
 use clap::{crate_authors, crate_description, crate_version, AppSettings, Clap, IntoApp};
 
 mod auth;
@@ -10,7 +11,7 @@ mod rest;
 pub(crate) use auth::get_token;
 pub(crate) use env::Environment;
 pub(crate) use playback::connect;
-pub(crate) use rest::{Empty, Method, RestClient, MayBeEmpty};
+pub(crate) use rest::{Empty, MayBeEmpty, Method, RestClient};
 
 #[derive(Debug, Clap)]
 #[clap(version = crate_version!(), author = crate_authors!(), about = crate_description!())]
@@ -122,7 +123,7 @@ async fn main() -> anyhow::Result<()> {
     let env = Environment::load().await?;
 
     if opts.login {
-        get_token(&env, default_leading_authorization_url).await?;
+        auth::authenticate(&env, default_leading_authorization_url).await?;
         return Ok(());
     }
 

@@ -86,6 +86,9 @@ fn authorization_url(
     config: &AuthorizationConfig,
     code_challenge: &str,
 ) -> anyhow::Result<(Url, String)> {
+    let state = rand::random::<[u8; 16]>();
+    let state = base64::encode_config(&state, base64::URL_SAFE_NO_PAD);
+
     let mut url = Url::parse(&config.authorization_endpoint)?;
     url.query_pairs_mut()
         .append_pair("client_id", &config.client_id)
@@ -97,10 +100,9 @@ fn authorization_url(
             "scope",
             "streaming user-read-email user-read-private user-read-playback-state user-top-read",
         )
-        .append_pair("state", "state");
+        .append_pair("state", &state);
 
-    // TODO csrf token
-    Ok((url, "state".into()))
+    Ok((url, state))
 }
 
 async fn get_authorization_code<F>(
@@ -225,6 +227,23 @@ async fn refresh_token(
     let result = response.bytes().await?;
     let token = serde_json::from_slice(&result)?;
     Ok(token)
+}
+
+pub async fn authenticate<F>(env: &super::Environment, url_callback: F) -> anyhow::Result<()>
+where
+    F: FnMut(String),
+{
+    let cache_path = dirs::cache_dir().unwrap().join("sptty/token");
+    fs::create_dir_all(cache_path.parent().unwrap()).await?;
+
+    let verifier = gen_code_verifier();
+    let code = get_authorization_code(&env.auth_config, &verifier, url_callback).await?;
+    let token = get_token_from_code(&env.auth_config, &verifier, &code).await?;
+
+    let json = serde_json::to_string(&token)?;
+    fs::write(&cache_path, json).await?;
+
+    Ok(())
 }
 
 pub async fn get_token<F>(env: &super::Environment, url_callback: F) -> anyhow::Result<String>

@@ -2,7 +2,13 @@ use super::*;
 
 pub async fn list(env: &Environment) -> anyhow::Result<()> {
     let client = RestClient::new(env).await?;
-    let current_playing = client.request::<_, MayBeEmpty<model::CurrentlyPlayingContext>>("/v1/me/player", Method::Get, Empty).await?;
+    let current_playing = client
+        .request::<_, MayBeEmpty<model::CurrentlyPlayingContext>>(
+            "/v1/me/player",
+            Method::Get,
+            Empty,
+        )
+        .await?;
     let current_playing = if let MayBeEmpty::Present(p) = current_playing {
         p
     } else {
@@ -12,22 +18,51 @@ pub async fn list(env: &Environment) -> anyhow::Result<()> {
         log::debug!("{:?}", ctx);
         match ctx.r#type.as_ref() {
             "artist" => {
-                let user = client.request::<_, model::PrivateUser>("/v1/me", Method::Get, Empty).await?;
-                let url = format!("{}/top-tracks?additional_types=track&market={}", &ctx.href, &user.country);
-                let tracks = client.request::<_, model::Tracks>(&url, Method::Get, Empty).await?;
+                let user = client
+                    .request::<_, model::PrivateUser>("/v1/me", Method::Get, Empty)
+                    .await?;
+                let url = format!(
+                    "{}/top-tracks?additional_types=track&market={}",
+                    &ctx.href, &user.country
+                );
+                let tracks = client
+                    .request::<_, model::Tracks>(&url, Method::Get, Empty)
+                    .await?;
                 for track in tracks.tracks {
-                    println!("{} {} ({})", track.id, track.name, track.artists.iter().map(|a| a.name.clone()).collect::<Vec<_>>().join(" "));
+                    println!(
+                        "{} {} ({})",
+                        track.id,
+                        track.name,
+                        track
+                            .artists
+                            .iter()
+                            .map(|a| a.name.clone())
+                            .collect::<Vec<_>>()
+                            .join(" ")
+                    );
                 }
             }
             "playlist" => {
                 let url = format!("{}/tracks?additional_types=track", &ctx.href);
-                let playlist = client.request::<_, model::Paging<model::PlaylistTrack>>(&url, Method::Get, Empty).await?;
+                let playlist = client
+                    .request::<_, model::Paging<model::PlaylistTrack>>(&url, Method::Get, Empty)
+                    .await?;
                 for track in playlist.items {
                     match track.track {
-                        Some(model::TrackOrEpisode::Track{inner}) => {
-                            println!("{} {} ({})", inner.id, inner.name, inner.artists.iter().map(|a| a.name.clone()).collect::<Vec<_>>().join(" "));
+                        Some(model::TrackOrEpisode::Track { inner }) => {
+                            println!(
+                                "{} {} ({})",
+                                inner.id,
+                                inner.name,
+                                inner
+                                    .artists
+                                    .iter()
+                                    .map(|a| a.name.clone())
+                                    .collect::<Vec<_>>()
+                                    .join(" ")
+                            );
                         }
-                        Some(model::TrackOrEpisode::Episode{..}) => {
+                        Some(model::TrackOrEpisode::Episode { .. }) => {
                             todo!();
                         }
                         None => todo!(),
@@ -36,9 +71,21 @@ pub async fn list(env: &Environment) -> anyhow::Result<()> {
             }
             "album" => {
                 let url = format!("{}/tracks", &ctx.href);
-                let tracks = client.request::<_, model::Paging<model::Track>>(&url, Method::Get, Empty).await?;
+                let tracks = client
+                    .request::<_, model::Paging<model::Track>>(&url, Method::Get, Empty)
+                    .await?;
                 for track in tracks.items {
-                    println!("{} {} ({})", track.id, track.name, track.artists.iter().map(|a| a.name.clone()).collect::<Vec<_>>().join(" "));
+                    println!(
+                        "{} {} ({})",
+                        track.id,
+                        track.name,
+                        track
+                            .artists
+                            .iter()
+                            .map(|a| a.name.clone())
+                            .collect::<Vec<_>>()
+                            .join(" ")
+                    );
                 }
             }
             "show" => todo!(),
