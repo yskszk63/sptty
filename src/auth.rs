@@ -1,12 +1,16 @@
 use std::collections::HashMap;
 use std::path::Path;
+use std::sync::Arc;
 
 use hyper::{server::conn::Http, service::service_fn, Body, Response};
 use rand::distributions::Distribution;
 use reqwest::{Client, Url};
 use ring::digest;
 use serde::{Deserialize, Serialize};
-use tokio::{fs, net::TcpListener, sync::mpsc};
+use tokio::fs;
+use tokio::net::TcpListener;
+use tokio::sync::oneshot;
+use tokio::sync::Mutex;
 
 const DEFAULT_AUTHORIZATION_ENDPOINT: &str = "https://accounts.spotify.com/authorize";
 const DEFAULT_TOKEN_ENDPOINT: &str = "https://accounts.spotify.com/api/token";
@@ -58,7 +62,7 @@ impl Distribution<u8> for PkceCodeVerifierChars {
         const GEN_ASCII_STR_CHARSET: &[u8] =
             b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-~";
 
-        //https://docs.rs/rand/0.8.4/src/rand/distributions/other.rs.html#105
+        // https://github.com/rust-random/rand/blob/067238f05753d18c7cc032717bef03a7f5244a8c/src/distributions/other.rs#L105
         loop {
             let var = rng.next_u32() >> (32 - 7); // 128bit
             if var < RANGE {
@@ -113,7 +117,7 @@ async fn get_authorization_code<F>(
 where
     F: FnMut(String),
 {
-    let challenge = code_challenge(&code_verifier);
+    let challenge = code_challenge(code_verifier);
     let (url, csrf_token) = authorization_url(config, &challenge)?;
     (url_callback)(url.to_string());
 
@@ -124,42 +128,49 @@ where
         redirect_uri.port().unwrap_or(80),
     ))
     .await?;
-    let code = loop {
-        let (sock, _) = listener.accept().await?;
-        let (tx, mut rx) = mpsc::unbounded_channel();
-        let connect = Http::new().serve_connection(
-            sock,
-            service_fn(|req| {
-                let csrf_token = csrf_token.clone();
-                let tx = tx.clone();
-                async move {
-                    let uri = req.uri();
-                    let url = Url::parse("http://example.com/")?.join(&uri.to_string())?;
 
-                    let query = url.query_pairs().collect::<HashMap<_, _>>();
-                    if let (Some(code), Some(state)) = (query.get("code"), query.get("state")) {
+    let (tx, rx) = oneshot::channel();
+    let tx = Arc::new(Mutex::new(Some(tx)));
+    let accept = async {
+        let (sock, _) = listener.accept().await?;
+        let tx = tx.clone();
+        let csrf_token = csrf_token.clone();
+        let func = service_fn(move |req| {
+            let tx = tx.clone();
+            let csrf_token = csrf_token.clone();
+            async move {
+                let uri = req.uri();
+                let url = Url::parse("http://example.com/")?.join(&uri.to_string())?;
+
+                let query = url.query_pairs().collect::<HashMap<_, _>>();
+
+                if let (Some(code), Some(state)) = (query.get("code"), query.get("state")) {
+                    if let Some(tx) = tx.lock().await.take() {
                         if state != &csrf_token {
                             anyhow::bail!("state mismatch.");
                         }
-                        tx.send(code.to_string())?;
+                        tx.send(code.to_string()).ok();
+                        let res = Response::builder().body(Body::from("ok"))?;
+                        return anyhow::Result::<_>::Ok(res);
                     }
-
-                    let res = Response::new(Body::from("ok"));
-                    anyhow::Result::<_>::Ok(res)
                 }
-            }),
-        );
 
-        tokio::select! {
-            r = connect => r?,
-            code = rx.recv() => {
-                if let Some(code) = code {
-                    break code;
-                }
+                let res = Response::builder().status(204).body(Body::empty())?;
+                anyhow::Result::<_>::Ok(res)
             }
-        }
+        });
+
+        Http::new().serve_connection(sock, func).await?;
+        anyhow::Result::<_>::Ok(())
     };
-    Ok(code)
+
+    tokio::select! {
+        r = accept => {
+            r?;
+            anyhow::bail!("failed to serve code.") // may be unreachable
+        }
+        code = rx => Ok(code?),
+    }
 }
 
 #[derive(Debug, Serialize)]

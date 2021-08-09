@@ -1,5 +1,19 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Default)]
+pub struct StartResumeAUsersPlaybackRequest {
+    pub context_uri: Option<String>,
+    pub uris: Option<Vec<String>>,
+    pub offset: Option<()>,
+    pub position_ms: Option<u64>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TransferUserPlaybackRequest {
+    pub device_ids: Vec<String>,
+    pub play: bool,
+}
+
 /// https://developer.spotify.com/documentation/web-api/reference/#object-deviceobject
 #[derive(Debug, Deserialize)]
 pub struct Device {
@@ -17,12 +31,6 @@ pub struct Device {
 #[derive(Debug, Deserialize)]
 pub struct Devices {
     pub devices: Vec<Device>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct TransferUserPlaybackRequest {
-    pub device_ids: Vec<String>,
-    pub play: bool,
 }
 
 /// https://developer.spotify.com/documentation/web-api/reference/#object-disallowsobject

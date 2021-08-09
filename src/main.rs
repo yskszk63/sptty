@@ -45,7 +45,10 @@ enum SubCommands {
     PreviousTrack,
     /// Play track current playing playlist.
     #[clap(display_order = 5)]
-    Play,
+    Play {
+        /// Plaing track uri
+        track_uri: Option<String>,
+    },
     /// Stop playing.
     #[clap(display_order = 6)]
     Stop,
@@ -92,22 +95,15 @@ struct Agent {
 #[derive(Debug, Clap)]
 #[clap(setting = AppSettings::InferSubcommands)]
 enum AgentSubCommands {
-    /// Run playback agent on foreground. (default)
+    /// Run playback agent on foreground.
     #[clap(display_order = 0)]
     Run,
-    /// Start playback anget on background. (as systemd user unit)
+    /// Start playback anget on background as systemd user unit. (default)
     #[clap(display_order = 1)]
     Start,
     /// Stop playback agent background process.
     #[clap(display_order = 2)]
     Kill,
-    /// Install systemd user unit file.
-    #[clap(display_order = 3)]
-    Install {
-        /// force install.
-        #[clap(long, short)]
-        force: bool,
-    },
 }
 
 fn default_leading_authorization_url(url: String) {
@@ -135,20 +131,16 @@ async fn main() -> anyhow::Result<()> {
     let subcommand = opts.subcommand.unwrap();
     match subcommand {
         SubCommands::Agent(Agent {
-            subcommand: None | Some(AgentSubCommands::Run),
+            subcommand: Some(AgentSubCommands::Run),
         }) => cmd::agent::run(&env).await,
 
         SubCommands::Agent(Agent {
-            subcommand: Some(AgentSubCommands::Start),
+            subcommand: None | Some(AgentSubCommands::Start),
         }) => cmd::agent::start().await,
 
         SubCommands::Agent(Agent {
             subcommand: Some(AgentSubCommands::Kill),
         }) => cmd::agent::kill().await,
-
-        SubCommands::Agent(Agent {
-            subcommand: Some(AgentSubCommands::Install { force }),
-        }) => cmd::agent::install(force).await,
 
         SubCommands::Device(Device {
             subcommand: None | Some(DeviceSubCommands::List),
@@ -173,7 +165,14 @@ async fn main() -> anyhow::Result<()> {
         }) => cmd::device::set_by_id(&env, &name, play).await,
 
         SubCommands::List => cmd::track::list(&env).await,
-        SubCommands::Play => cmd::track::play(&env).await,
+        SubCommands::Play { track_uri } => {
+            cmd::agent::start().await?;
+            if let Some(uri) = track_uri {
+                cmd::track::play(&env, &uri).await
+            } else {
+                cmd::track::resume(&env).await
+            }
+        }
         SubCommands::Stop => cmd::track::stop(&env).await,
         SubCommands::NextTrack => cmd::track::next(&env).await,
         SubCommands::PreviousTrack => cmd::track::prev(&env).await,

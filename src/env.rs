@@ -31,7 +31,8 @@ impl Environment {
         Self::config_dir().join("config.toml")
     }
 
-    pub fn systemd_user_dir() -> PathBuf {
-        dirs::config_dir().unwrap().join("systemd/user")
+    pub fn systemd_user_runtime_dir() -> PathBuf {
+        let dir = dirs::runtime_dir().expect("no $XDG_DATA_HOME found.");
+        dir.join("systemd/user")
     }
 }

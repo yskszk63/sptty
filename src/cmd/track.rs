@@ -31,7 +31,7 @@ pub async fn list(env: &Environment) -> anyhow::Result<()> {
                 for track in tracks.tracks {
                     println!(
                         "{} {} ({})",
-                        track.id,
+                        track.uri,
                         track.name,
                         track
                             .artists
@@ -52,7 +52,7 @@ pub async fn list(env: &Environment) -> anyhow::Result<()> {
                         Some(model::TrackOrEpisode::Track { inner }) => {
                             println!(
                                 "{} {} ({})",
-                                inner.id,
+                                inner.uri,
                                 inner.name,
                                 inner
                                     .artists
@@ -77,7 +77,7 @@ pub async fn list(env: &Environment) -> anyhow::Result<()> {
                 for track in tracks.items {
                     println!(
                         "{} {} ({})",
-                        track.id,
+                        track.uri,
                         track.name,
                         track
                             .artists
@@ -113,7 +113,19 @@ pub async fn prev(env: &Environment) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn play(env: &Environment) -> anyhow::Result<()> {
+pub async fn play(env: &Environment, uri: &str) -> anyhow::Result<()> {
+    let request = model::StartResumeAUsersPlaybackRequest {
+        uris: Some(vec![uri.into()]),
+        ..Default::default()
+    };
+    RestClient::new(env)
+        .await?
+        .request::<_, Empty>("/v1/me/player/play", Method::Put, request)
+        .await?;
+    Ok(())
+}
+
+pub async fn resume(env: &Environment) -> anyhow::Result<()> {
     RestClient::new(env)
         .await?
         .request::<_, Empty>("/v1/me/player/play", Method::Put, Empty)
