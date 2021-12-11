@@ -1,5 +1,5 @@
 //! A Lightweight Spotify Client for Linux.
-use clap::{crate_authors, crate_description, crate_version, AppSettings, Clap, IntoApp};
+use clap::{crate_authors, crate_description, crate_version, AppSettings, IntoApp, Parser};
 
 mod auth;
 mod cmd;
@@ -13,7 +13,7 @@ pub(crate) use env::Environment;
 pub(crate) use playback::connect;
 pub(crate) use rest::{Empty, MayBeEmpty, Method, RestClient};
 
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 #[clap(version = crate_version!(), author = crate_authors!(), about = crate_description!())]
 #[clap(setting = AppSettings::InferSubcommands)]
 struct Cli {
@@ -25,7 +25,7 @@ struct Cli {
     subcommand: Option<SubCommands>,
 }
 
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 #[clap(setting = AppSettings::InferSubcommands)]
 enum SubCommands {
     /// Manage playback agent.
@@ -57,14 +57,14 @@ enum SubCommands {
     Open,
 }
 
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 #[clap(setting = AppSettings::InferSubcommands)]
 struct Device {
     #[clap(subcommand)]
     subcommand: Option<DeviceSubCommands>,
 }
 
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 #[clap(setting = AppSettings::InferSubcommands)]
 enum DeviceSubCommands {
     /// List connected devices.
@@ -85,14 +85,14 @@ enum DeviceSubCommands {
     },
 }
 
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 #[clap(setting = AppSettings::InferSubcommands)]
 struct Agent {
     #[clap(subcommand)]
     subcommand: Option<AgentSubCommands>,
 }
 
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 #[clap(setting = AppSettings::InferSubcommands)]
 enum AgentSubCommands {
     /// Run playback agent on foreground.
