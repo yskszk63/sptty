@@ -20,7 +20,7 @@ reqwest = "0.11"
 toml = "0.5"
 
 [dependencies.librespot]
-version = "0.2"
+version = "0.3"
 features = ["pulseaudio-backend"]
 default-features = false
 

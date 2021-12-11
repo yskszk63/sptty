@@ -2,7 +2,6 @@ use librespot::connect::spirc::Spirc;
 use librespot::core::cache::Cache;
 use librespot::core::config::ConnectConfig;
 use librespot::core::config::DeviceType;
-use librespot::core::config::VolumeCtrl;
 use librespot::core::{authentication::Credentials, config::SessionConfig, session::Session};
 use librespot::playback::config::Bitrate;
 use librespot::playback::config::{AudioFormat, PlayerConfig};
@@ -28,10 +27,10 @@ pub async fn connect(
         autoplay: false,
         device_type: DeviceType::Computer,
         name: "sptty".into(),
-        volume: 0x5999, // 35%
-        volume_ctrl: VolumeCtrl::Linear,
+        initial_volume: Some(0x5999), // 35%
+        has_volume_ctrl: false,
     };
-    let mixer = mixer::find::<String>(None).unwrap();
+    let mixer = mixer::find(None).unwrap();
 
     let credentials = Credentials {
         username: "".into(),
@@ -49,7 +48,7 @@ pub async fn connect(
         let format = AudioFormat::F32;
         (backend)(device, format)
     };
-    let mixer = (mixer)(None);
+    let mixer = (mixer)(Default::default());
     let (player, mut player_events) = Player::new(
         player_config,
         session.clone(),

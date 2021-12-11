@@ -748,6 +748,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f98a04dce437184842841303488f70d0188c5f51437d2a834dc097eafa909a01"
 
 [[package]]
+name = "libm"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
+
+[[package]]
 name = "libmdns"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -815,9 +821,9 @@ dependencies = [
 
 [[package]]
 name = "librespot"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "450aa724dcc28a06c6f3a070e7f4b84c0800d9152bec3b012a11ff886986bd58"
+checksum = "5fb49bc466977d940fae6e9219d56e1355a2f3d77a348fe7f708fa8f36905491"
 dependencies = [
  "base64",
  "env_logger 0.8.4",
@@ -828,6 +834,7 @@ dependencies = [
  "librespot-audio",
  "librespot-connect",
  "librespot-core",
+ "librespot-discovery",
  "librespot-metadata",
  "librespot-playback",
  "librespot-protocol",
@@ -841,39 +848,30 @@ dependencies = [
 
 [[package]]
 name = "librespot-audio"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa0e89d3e106d80600537eba02c17ea6dd8b3de3f46c99952b813b6f6d6445c0"
+checksum = "e5f7cc7e4d1c2596191be523668c933e07ec8a318d099fd66658258a4fe4a2dc"
 dependencies = [
  "aes-ctr",
  "byteorder",
  "bytes",
- "cfg-if",
  "futures-util",
- "lewton",
  "librespot-core",
  "log",
- "ogg",
  "tempfile",
  "tokio",
- "zerocopy",
 ]
 
 [[package]]
 name = "librespot-connect"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69425fd6c8d74779f1ec86b16e6b3114df50c8a0d94db5a5601ef634bfb5e288"
+checksum = "1e9dbfd8ee475a0874dc284f29c60d214bee43504979b244dd33763979f5ba76"
 dependencies = [
- "aes-ctr",
- "base64",
  "form_urlencoded",
- "futures-core",
  "futures-util",
- "hmac",
- "hyper",
- "libmdns",
  "librespot-core",
+ "librespot-discovery",
  "librespot-playback",
  "librespot-protocol",
  "log",
@@ -881,17 +879,15 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
- "sha-1",
  "tokio",
  "tokio-stream",
- "url",
 ]
 
 [[package]]
 name = "librespot-core"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df3e70dce131f5531c982ca133f04fd1d1dd4208de27291dcd9ab6841c963248"
+checksum = "255e8d8d719c020895079d140baf0b0edec8447d39a7e4760708f33b7cafaafb"
 dependencies = [
  "aes",
  "base64",
@@ -929,10 +925,33 @@ dependencies = [
 ]
 
 [[package]]
-name = "librespot-metadata"
-version = "0.2.0"
+name = "librespot-discovery"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84157ce5d901dbdcaef17ed305deba5d87171725347673a1b632a334d910af47"
+checksum = "c4adeff34212261a291f6519331f9232699a3b0208116f48cb47a97224ff5b63"
+dependencies = [
+ "aes-ctr",
+ "base64",
+ "cfg-if",
+ "form_urlencoded",
+ "futures-core",
+ "hmac",
+ "hyper",
+ "libmdns",
+ "librespot-core",
+ "log",
+ "rand",
+ "serde_json",
+ "sha-1",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "librespot-metadata"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "624ac29bb3ad2e565ef78a049a6c554d94e48b673aaba0bf7e7efd946d0b66cd"
 dependencies = [
  "async-trait",
  "byteorder",
@@ -944,33 +963,37 @@ dependencies = [
 
 [[package]]
 name = "librespot-playback"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59ca3df986a7e1a43008717660803e159177e86a589d484a0fc01fccd7967ad6"
+checksum = "188b252b690ae7387f84a481ff4211df1a5c21eb9bddfc25cbde48793f2e0ef2"
 dependencies = [
  "byteorder",
  "futures-executor",
  "futures-util",
+ "lewton",
  "libpulse-binding",
  "libpulse-simple-binding",
  "librespot-audio",
  "librespot-core",
  "librespot-metadata",
  "log",
+ "ogg",
+ "rand",
+ "rand_distr",
  "shell-words",
+ "thiserror",
  "tokio",
  "zerocopy",
 ]
 
 [[package]]
 name = "librespot-protocol"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c753be4c3bd0f02b30c00d5d8547f16d557654cb737e70505aec6aa9990435d"
+checksum = "41b3699b05cb4c50caa5a5b7f5b3aadb928dfcc91cf1aa632c0dabce3ccc3ee4"
 dependencies = [
  "glob",
  "protobuf",
- "protobuf-codegen",
  "protobuf-codegen-pure",
 ]
 
@@ -1105,6 +1128,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a64b1ec5cda2586e284722486d802acf1f7dbdc623e2bfc57e65ca1cd099290"
 dependencies = [
  "autocfg",
+ "libm",
 ]
 
 [[package]]
@@ -1285,24 +1309,24 @@ dependencies = [
 
 [[package]]
 name = "protobuf"
-version = "2.14.0"
+version = "2.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e86d370532557ae7573551a1ec8235a0f8d6cb276c7c9e6aa490b511c447485"
+checksum = "47c327e191621a2158159df97cdbc2e7074bb4e940275e35abf38eb3d2595754"
 
 [[package]]
 name = "protobuf-codegen"
-version = "2.14.0"
+version = "2.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de113bba758ccf2c1ef816b127c958001b7831136c9bc3f8e9ec695ac4e82b0c"
+checksum = "3df8c98c08bd4d6653c2dbae00bd68c1d1d82a360265a5b0bbc73d48c63cb853"
 dependencies = [
  "protobuf",
 ]
 
 [[package]]
 name = "protobuf-codegen-pure"
-version = "2.14.0"
+version = "2.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d1a4febc73bf0cada1d77c459a0c8e5973179f1cfd5b0f1ab789d45b17b6440"
+checksum = "394a73e2a819405364df8d30042c0f1174737a763e0170497ec9d36f8a2ea8f7"
 dependencies = [
  "protobuf",
  "protobuf-codegen",
@@ -1352,6 +1376,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
 dependencies = [
  "getrandom",
+]
+
+[[package]]
+name = "rand_distr"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "964d548f8e7d12e102ef183a0de7e98180c9f8729f555897a857b96e48122d2f"
+dependencies = [
+ "num-traits",
+ "rand",
 ]
 
 [[package]]
