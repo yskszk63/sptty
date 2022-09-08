@@ -80,8 +80,8 @@ pub struct SimplifiedArtist {
 #[derive(Debug, Deserialize)]
 pub struct Image {
     //height: Option<u64>,
-//url: String,
-//width: Option<u64>,
+    //url: String,
+    //width: Option<u64>,
 }
 
 /// https://developer.spotify.com/documentation/web-api/reference/#object-albumrestrictionobject
