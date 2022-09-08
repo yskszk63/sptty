@@ -38,9 +38,9 @@ pub async fn connect(
         auth_data: token.into(),
     };
     let audio_cache = dirs::cache_dir().unwrap().join("sptty/audio");
-    let cache = Cache::new(None, Some(audio_cache), None)?;
+    let cache = Cache::new(None, None, Some(audio_cache), None)?;
 
-    let session = Session::connect(session_config, credentials, Some(cache)).await?;
+    let (session, _) = Session::connect(session_config, credentials, Some(cache), false).await?;
 
     let sink_builder = || {
         let backend = audio_backend::find(Some("pulseaudio".into())).unwrap();
@@ -52,7 +52,7 @@ pub async fn connect(
     let (player, mut player_events) = Player::new(
         player_config,
         session.clone(),
-        mixer.get_audio_filter(),
+        mixer.get_soft_volume(),
         sink_builder,
     );
 
