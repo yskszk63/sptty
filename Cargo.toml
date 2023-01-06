@@ -29,7 +29,7 @@ version = "1.0"
 features = ["derive"]
 
 [dependencies.tokio]
-version = "1.20"
+version = "1.23"
 features = ["rt", "net", "fs", "sync", "process", "macros"]
 
 [dependencies.hyper]
